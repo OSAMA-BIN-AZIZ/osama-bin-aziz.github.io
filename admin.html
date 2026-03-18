@@ -1,0 +1,1449 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>V2free 管理后台</title>
+  <meta name="description" content="V2free 管理后台原型，包含仪表盘、用户、订单、内容、工单与系统设置。">
+  <style>
+    :root {
+      --bg: #0f172a;
+      --panel: rgba(15, 23, 42, 0.72);
+      --panel-strong: #111c33;
+      --line: rgba(148, 163, 184, 0.16);
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --brand: #38bdf8;
+      --brand-strong: #0ea5e9;
+      --success: #22c55e;
+      --warning: #f59e0b;
+      --danger: #ef4444;
+      --shadow: 0 18px 45px rgba(2, 6, 23, 0.35);
+      --radius-lg: 24px;
+      --radius-md: 18px;
+      --radius-sm: 12px;
+      --sidebar-width: 260px;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Inter", "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(56, 189, 248, 0.18), transparent 28%),
+        radial-gradient(circle at top right, rgba(34, 197, 94, 0.16), transparent 25%),
+        linear-gradient(180deg, #020617 0%, #0f172a 45%, #111827 100%);
+      min-height: 100vh;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    .app-shell {
+      display: grid;
+      grid-template-columns: var(--sidebar-width) minmax(0, 1fr);
+      min-height: 100vh;
+    }
+
+    .sidebar {
+      position: sticky;
+      top: 0;
+      height: 100vh;
+      padding: 28px 20px;
+      background: rgba(2, 6, 23, 0.78);
+      border-right: 1px solid var(--line);
+      backdrop-filter: blur(18px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 28px;
+      padding: 14px;
+      border: 1px solid rgba(56, 189, 248, 0.25);
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, rgba(14, 165, 233, 0.18), rgba(15, 23, 42, 0.35));
+      box-shadow: var(--shadow);
+    }
+
+    .brand-mark {
+      display: grid;
+      place-items: center;
+      width: 48px;
+      height: 48px;
+      border-radius: 16px;
+      background: linear-gradient(135deg, var(--brand), #8b5cf6);
+      color: white;
+      font-weight: 800;
+      letter-spacing: 0.08em;
+    }
+
+    .brand h1 {
+      margin: 0;
+      font-size: 1.1rem;
+    }
+
+    .brand p {
+      margin: 4px 0 0;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .nav-group {
+      margin-top: 24px;
+    }
+
+    .nav-title {
+      margin: 0 0 10px;
+      padding: 0 12px;
+      color: var(--muted);
+      font-size: 0.8rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+    }
+
+    .nav-list {
+      display: grid;
+      gap: 8px;
+    }
+
+    .nav-link {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      width: 100%;
+      padding: 12px 14px;
+      border: 1px solid transparent;
+      border-radius: 14px;
+      color: var(--text);
+      background: transparent;
+      cursor: pointer;
+      transition: 0.2s ease;
+      text-align: left;
+    }
+
+    .nav-link:hover,
+    .nav-link.active {
+      background: rgba(15, 23, 42, 0.82);
+      border-color: rgba(56, 189, 248, 0.3);
+      box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.06);
+    }
+
+    .nav-link small {
+      color: var(--muted);
+      font-size: 0.8rem;
+    }
+
+    .sidebar-footer {
+      margin-top: 28px;
+      padding: 16px;
+      border-radius: var(--radius-md);
+      background: rgba(15, 23, 42, 0.9);
+      border: 1px solid var(--line);
+    }
+
+    .sidebar-footer h2 {
+      margin: 0 0 8px;
+      font-size: 1rem;
+    }
+
+    .sidebar-footer p {
+      margin: 0 0 12px;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 0.92rem;
+    }
+
+    .sidebar-footer a {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      padding: 10px 14px;
+      border-radius: 12px;
+      background: rgba(56, 189, 248, 0.18);
+      color: #dff6ff;
+      font-weight: 600;
+    }
+
+    .main {
+      padding: 28px;
+    }
+
+    .topbar {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+      margin-bottom: 24px;
+      padding: 18px 22px;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: rgba(15, 23, 42, 0.58);
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow);
+    }
+
+    .headline h2 {
+      margin: 0;
+      font-size: clamp(1.4rem, 2vw, 2rem);
+    }
+
+    .headline p {
+      margin: 8px 0 0;
+      color: var(--muted);
+      line-height: 1.5;
+    }
+
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+    }
+
+    .search-box,
+    .select-box {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      min-height: 46px;
+      padding: 0 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(2, 6, 23, 0.45);
+    }
+
+    .search-box input,
+    .select-box select {
+      border: 0;
+      outline: none;
+      color: var(--text);
+      background: transparent;
+      min-width: 160px;
+    }
+
+    .select-box select option {
+      background: #0f172a;
+    }
+
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      min-height: 46px;
+      padding: 0 18px;
+      border: 1px solid transparent;
+      border-radius: 14px;
+      cursor: pointer;
+      transition: 0.2s ease;
+      font-weight: 700;
+    }
+
+    .btn-primary {
+      background: linear-gradient(135deg, var(--brand), #2563eb);
+      color: white;
+      box-shadow: 0 12px 28px rgba(14, 165, 233, 0.22);
+    }
+
+    .btn-secondary {
+      background: rgba(15, 23, 42, 0.9);
+      border-color: var(--line);
+      color: var(--text);
+    }
+
+    .btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .panel-grid {
+      display: grid;
+      gap: 18px;
+    }
+
+    .stats-grid {
+      grid-template-columns: repeat(4, minmax(0, 1fr));
+      margin-bottom: 18px;
+    }
+
+    .content-grid {
+      grid-template-columns: 2fr 1.2fr;
+      margin-bottom: 18px;
+    }
+
+    .secondary-grid {
+      grid-template-columns: 1.3fr 1fr;
+      margin-bottom: 18px;
+    }
+
+    .triple-grid {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+
+    .card {
+      position: relative;
+      overflow: hidden;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-lg);
+      background: var(--panel);
+      backdrop-filter: blur(18px);
+      box-shadow: var(--shadow);
+    }
+
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(255, 255, 255, 0.03), transparent 40%);
+      pointer-events: none;
+    }
+
+    .card-body {
+      position: relative;
+      z-index: 1;
+      padding: 22px;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      margin-bottom: 18px;
+    }
+
+    .card-header h3,
+    .card-header h4 {
+      margin: 0;
+      font-size: 1.06rem;
+    }
+
+    .card-header p {
+      margin: 6px 0 0;
+      color: var(--muted);
+      line-height: 1.5;
+      font-size: 0.92rem;
+    }
+
+    .tag,
+    .status,
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .tag {
+      background: rgba(56, 189, 248, 0.16);
+      color: #d6f4ff;
+    }
+
+    .status.success,
+    .badge.success {
+      background: rgba(34, 197, 94, 0.14);
+      color: #bbf7d0;
+    }
+
+    .status.warning,
+    .badge.warning {
+      background: rgba(245, 158, 11, 0.16);
+      color: #fef3c7;
+    }
+
+    .status.danger,
+    .badge.danger {
+      background: rgba(239, 68, 68, 0.14);
+      color: #fecaca;
+    }
+
+    .metric-title {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .metric-value {
+      margin: 10px 0 10px;
+      font-size: clamp(1.7rem, 2vw, 2.2rem);
+      font-weight: 800;
+      letter-spacing: -0.03em;
+    }
+
+    .metric-footnote {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      color: var(--muted);
+      font-size: 0.9rem;
+    }
+
+    .mini-progress,
+    .progress {
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.16);
+      overflow: hidden;
+    }
+
+    .mini-progress span,
+    .progress span {
+      display: block;
+      height: 100%;
+      border-radius: inherit;
+      background: linear-gradient(90deg, var(--brand), #6366f1);
+    }
+
+    .chart {
+      display: flex;
+      align-items: flex-end;
+      gap: 14px;
+      height: 270px;
+      padding-top: 10px;
+    }
+
+    .bar-group {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .bar-stack {
+      width: 100%;
+      max-width: 44px;
+      height: 210px;
+      display: flex;
+      align-items: flex-end;
+    }
+
+    .bar {
+      width: 100%;
+      border-radius: 16px 16px 8px 8px;
+      background: linear-gradient(180deg, rgba(56, 189, 248, 1), rgba(37, 99, 235, 0.72));
+      box-shadow: 0 10px 20px rgba(14, 165, 233, 0.18);
+    }
+
+    .bar-group span {
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+
+    .bar-group strong {
+      font-size: 0.9rem;
+    }
+
+    .donut-layout {
+      display: grid;
+      grid-template-columns: 180px 1fr;
+      gap: 18px;
+      align-items: center;
+    }
+
+    .donut {
+      width: 180px;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      background: conic-gradient(
+        var(--brand) 0 38%,
+        #22c55e 38% 63%,
+        #f59e0b 63% 81%,
+        #8b5cf6 81% 100%
+      );
+      display: grid;
+      place-items: center;
+      margin: 0 auto;
+      box-shadow: inset 0 0 30px rgba(15, 23, 42, 0.25);
+    }
+
+    .donut::before {
+      content: "";
+      width: 112px;
+      height: 112px;
+      border-radius: 50%;
+      background: #0f172a;
+      border: 1px solid var(--line);
+    }
+
+    .donut-center {
+      position: absolute;
+      text-align: center;
+    }
+
+    .donut-center strong {
+      display: block;
+      font-size: 1.8rem;
+    }
+
+    .legend {
+      display: grid;
+      gap: 12px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(15, 23, 42, 0.58);
+    }
+
+    .legend-left {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+    }
+
+    .table-wrap {
+      overflow-x: auto;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      min-width: 680px;
+    }
+
+    th,
+    td {
+      padding: 14px 12px;
+      border-bottom: 1px solid var(--line);
+      text-align: left;
+      vertical-align: middle;
+    }
+
+    th {
+      color: var(--muted);
+      font-size: 0.84rem;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      font-weight: 700;
+    }
+
+    td strong {
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    td small {
+      color: var(--muted);
+    }
+
+    .list {
+      display: grid;
+      gap: 14px;
+    }
+
+    .list-item {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(2, 6, 23, 0.38);
+    }
+
+    .list-item h4 {
+      margin: 0 0 4px;
+      font-size: 1rem;
+    }
+
+    .list-item p,
+    .list-item small {
+      margin: 0;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .split {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 18px;
+    }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .form-group {
+      display: grid;
+      gap: 8px;
+    }
+
+    .form-group.full {
+      grid-column: 1 / -1;
+    }
+
+    .form-group label {
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .field {
+      width: 100%;
+      min-height: 48px;
+      padding: 12px 14px;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background: rgba(2, 6, 23, 0.38);
+      color: var(--text);
+      outline: none;
+    }
+
+    textarea.field {
+      min-height: 120px;
+      resize: vertical;
+    }
+
+    .toggle-row {
+      display: grid;
+      gap: 12px;
+    }
+
+    .toggle-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 14px;
+      padding: 14px 16px;
+      border: 1px solid var(--line);
+      border-radius: 16px;
+      background: rgba(2, 6, 23, 0.34);
+    }
+
+    .switch {
+      position: relative;
+      width: 54px;
+      height: 30px;
+      flex: 0 0 auto;
+    }
+
+    .switch input {
+      display: none;
+    }
+
+    .slider {
+      position: absolute;
+      inset: 0;
+      border-radius: 999px;
+      background: rgba(148, 163, 184, 0.28);
+      transition: 0.2s ease;
+      cursor: pointer;
+    }
+
+    .slider::before {
+      content: "";
+      position: absolute;
+      top: 3px;
+      left: 4px;
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: white;
+      transition: 0.2s ease;
+      box-shadow: 0 6px 16px rgba(15, 23, 42, 0.35);
+    }
+
+    .switch input:checked + .slider {
+      background: linear-gradient(135deg, var(--brand), #2563eb);
+    }
+
+    .switch input:checked + .slider::before {
+      transform: translateX(23px);
+    }
+
+    .section-panel {
+      display: none;
+    }
+
+    .section-panel.active {
+      display: block;
+    }
+
+    .notice {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 16px 18px;
+      border-radius: 18px;
+      background: rgba(14, 165, 233, 0.12);
+      border: 1px solid rgba(56, 189, 248, 0.2);
+      color: #dff6ff;
+      line-height: 1.6;
+    }
+
+    .quick-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .quick-actions .btn {
+      min-height: 42px;
+    }
+
+    @media (max-width: 1200px) {
+      .stats-grid,
+      .triple-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+      }
+
+      .content-grid,
+      .secondary-grid,
+      .split,
+      .donut-layout {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    @media (max-width: 900px) {
+      .app-shell {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+        height: auto;
+      }
+
+      .form-grid,
+      .stats-grid,
+      .triple-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .main {
+        padding: 18px;
+      }
+
+      .topbar {
+        padding: 16px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">VA</div>
+        <div>
+          <h1>V2free Admin</h1>
+          <p>统一管理平台 / static demo</p>
+        </div>
+      </div>
+
+      <div class="nav-group">
+        <p class="nav-title">工作台</p>
+        <div class="nav-list">
+          <button class="nav-link active" data-target="dashboard">
+            <span>总览仪表盘</span>
+            <small>Home</small>
+          </button>
+          <button class="nav-link" data-target="users">
+            <span>用户管理</span>
+            <small>2,481</small>
+          </button>
+          <button class="nav-link" data-target="orders">
+            <span>订单与订阅</span>
+            <small>128</small>
+          </button>
+          <button class="nav-link" data-target="content">
+            <span>内容运营</span>
+            <small>12 待审</small>
+          </button>
+          <button class="nav-link" data-target="tickets">
+            <span>工单中心</span>
+            <small>9 紧急</small>
+          </button>
+          <button class="nav-link" data-target="settings">
+            <span>系统设置</span>
+            <small>Config</small>
+          </button>
+        </div>
+      </div>
+
+      <div class="nav-group">
+        <p class="nav-title">快捷入口</p>
+        <div class="nav-list">
+          <a class="nav-link" href="#create-user">
+            <span>新建用户</span>
+            <small>Form</small>
+          </a>
+          <a class="nav-link" href="#broadcast">
+            <span>站内公告</span>
+            <small>CMS</small>
+          </a>
+          <a class="nav-link" href="/index.html">
+            <span>返回首页</span>
+            <small>Site</small>
+          </a>
+        </div>
+      </div>
+
+      <div class="sidebar-footer">
+        <h2>后台说明</h2>
+        <p>这是一个可直接部署的纯静态后台原型，已经包含仪表盘、数据看板、表格、表单与设置面板。</p>
+        <a href="#settings">查看配置中心</a>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div class="headline">
+          <h2 id="page-title">总览仪表盘</h2>
+          <p id="page-desc">查看核心经营指标、用户趋势、工单状态与运营建议，适合作为后台首页的主工作台。</p>
+        </div>
+        <div class="toolbar">
+          <label class="search-box">
+            <span>🔎</span>
+            <input type="search" placeholder="搜索用户 / 订单 / 工单">
+          </label>
+          <label class="select-box">
+            <span>周期</span>
+            <select>
+              <option>最近 7 天</option>
+              <option selected>最近 30 天</option>
+              <option>最近 90 天</option>
+            </select>
+          </label>
+          <button class="btn btn-secondary">导出报表</button>
+          <button class="btn btn-primary">+ 新建任务</button>
+        </div>
+      </header>
+
+      <section class="section-panel active" id="dashboard">
+        <div class="panel-grid stats-grid">
+          <article class="card">
+            <div class="card-body">
+              <div class="metric-title">本月营收</div>
+              <div class="metric-value">¥ 286,430</div>
+              <div class="mini-progress"><span style="width: 76%"></span></div>
+              <div class="metric-footnote">
+                <span>较上月 +18.4%</span>
+                <span class="status success">目标达成 76%</span>
+              </div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-body">
+              <div class="metric-title">活跃用户</div>
+              <div class="metric-value">12,846</div>
+              <div class="mini-progress"><span style="width: 68%"></span></div>
+              <div class="metric-footnote">
+                <span>7 日留存 63%</span>
+                <span class="status success">新增 1,284</span>
+              </div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-body">
+              <div class="metric-title">待处理工单</div>
+              <div class="metric-value">34</div>
+              <div class="mini-progress"><span style="width: 42%"></span></div>
+              <div class="metric-footnote">
+                <span>紧急 9 个</span>
+                <span class="status warning">平均 18 分钟</span>
+              </div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-body">
+              <div class="metric-title">系统可用性</div>
+              <div class="metric-value">99.98%</div>
+              <div class="mini-progress"><span style="width: 99%"></span></div>
+              <div class="metric-footnote">
+                <span>错误率 0.02%</span>
+                <span class="status success">运行稳定</span>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <div class="panel-grid content-grid">
+          <article class="card">
+            <div class="card-body">
+              <div class="card-header">
+                <div>
+                  <h3>营收趋势</h3>
+                  <p>展示最近 7 个月的营收变化，可替换为真实接口数据后直接使用。</p>
+                </div>
+                <span class="tag">Revenue</span>
+              </div>
+              <div class="chart" aria-label="Revenue chart">
+                <div class="bar-group"><div class="bar-stack"><div class="bar" style="height: 48%"></div></div><strong>¥18万</strong><span>9月</span></div>
+                <div class="bar-group"><div class="bar-stack"><div class="bar" style="height: 56%"></div></div><strong>¥21万</strong><span>10月</span></div>
+                <div class="bar-group"><div class="bar-stack"><div class="bar" style="height: 64%"></div></div><strong>¥24万</strong><span>11月</span></div>
+                <div class="bar-group"><div class="bar-stack"><div class="bar" style="height: 59%"></div></div><strong>¥22万</strong><span>12月</span></div>
+                <div class="bar-group"><div class="bar-stack"><div class="bar" style="height: 71%"></div></div><strong>¥26万</strong><span>1月</span></div>
+                <div class="bar-group"><div class="bar-stack"><div class="bar" style="height: 82%"></div></div><strong>¥29万</strong><span>2月</span></div>
+                <div class="bar-group"><div class="bar-stack"><div class="bar" style="height: 88%"></div></div><strong>¥31万</strong><span>3月</span></div>
+              </div>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card-body">
+              <div class="card-header">
+                <div>
+                  <h3>用户结构</h3>
+                  <p>按套餐与生命周期拆分，可用于会员、订阅或 SaaS 产品后台。</p>
+                </div>
+                <span class="tag">Segment</span>
+              </div>
+              <div class="donut-layout">
+                <div style="position:relative; display:grid; place-items:center;">
+                  <div class="donut"></div>
+                  <div class="donut-center">
+                    <strong>12.8k</strong>
+                    <small>总用户</small>
+                  </div>
+                </div>
+                <div class="legend">
+                  <div class="legend-item"><div class="legend-left"><span class="dot" style="background:#38bdf8"></span><span>专业版</span></div><strong>38%</strong></div>
+                  <div class="legend-item"><div class="legend-left"><span class="dot" style="background:#22c55e"></span><span>企业版</span></div><strong>25%</strong></div>
+                  <div class="legend-item"><div class="legend-left"><span class="dot" style="background:#f59e0b"></span><span>试用用户</span></div><strong>18%</strong></div>
+                  <div class="legend-item"><div class="legend-left"><span class="dot" style="background:#8b5cf6"></span><span>流失预警</span></div><strong>19%</strong></div>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <div class="panel-grid secondary-grid">
+          <article class="card">
+            <div class="card-body">
+              <div class="card-header">
+                <div>
+                  <h3>最新订单</h3>
+                  <p>带状态标签、用户信息与支付方式的订单表格。</p>
+                </div>
+                <button class="btn btn-secondary">查看全部</button>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>订单号</th>
+                      <th>用户</th>
+                      <th>套餐</th>
+                      <th>金额</th>
+                      <th>状态</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><strong>#A-20391</strong><small>2026-03-18 09:21</small></td>
+                      <td><strong>Li Ming</strong><small>li.ming@example.com</small></td>
+                      <td>企业年度版</td>
+                      <td>¥ 9,999</td>
+                      <td><span class="badge success">已支付</span></td>
+                    </tr>
+                    <tr>
+                      <td><strong>#A-20388</strong><small>2026-03-18 08:55</small></td>
+                      <td><strong>Chen Yu</strong><small>chen.yu@example.com</small></td>
+                      <td>专业月付版</td>
+                      <td>¥ 199</td>
+                      <td><span class="badge warning">待确认</span></td>
+                    </tr>
+                    <tr>
+                      <td><strong>#A-20373</strong><small>2026-03-17 21:09</small></td>
+                      <td><strong>Zhang Qian</strong><small>zh.qian@example.com</small></td>
+                      <td>团队版</td>
+                      <td>¥ 1,299</td>
+                      <td><span class="badge success">已完成</span></td>
+                    </tr>
+                    <tr>
+                      <td><strong>#A-20365</strong><small>2026-03-17 18:14</small></td>
+                      <td><strong>Sun Tao</strong><small>sun.tao@example.com</small></td>
+                      <td>试用转正</td>
+                      <td>¥ 599</td>
+                      <td><span class="badge danger">退款中</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card-body">
+              <div class="card-header">
+                <div>
+                  <h3>待办事项</h3>
+                  <p>适合作为运营、客服、技术值班的任务列表。</p>
+                </div>
+                <span class="tag">Todo</span>
+              </div>
+              <div class="list">
+                <div class="list-item">
+                  <div>
+                    <h4>处理节点波动告警</h4>
+                    <p>东京节点丢包率升高，需要在 30 分钟内确认并回写状态。</p>
+                  </div>
+                  <span class="badge danger">紧急</span>
+                </div>
+                <div class="list-item">
+                  <div>
+                    <h4>审核 12 条内容更新</h4>
+                    <p>包括帮助中心公告、价格页文案与注册引导 FAQ。</p>
+                  </div>
+                  <span class="badge warning">今日</span>
+                </div>
+                <div class="list-item">
+                  <div>
+                    <h4>跟进大客户续费</h4>
+                    <p>企业版客户 4 家将于本周到期，需发起续费提醒。</p>
+                  </div>
+                  <span class="badge success">计划中</span>
+                </div>
+                <div class="list-item">
+                  <div>
+                    <h4>更新财务导出模板</h4>
+                    <p>新增税率与付款渠道字段，供财务月底结算使用。</p>
+                  </div>
+                  <span class="badge">排期</span>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+
+        <div class="panel-grid triple-grid">
+          <article class="card">
+            <div class="card-body">
+              <div class="card-header">
+                <div>
+                  <h4>系统告警</h4>
+                  <p>实时监控与异常提示。</p>
+                </div>
+                <span class="status warning">2 条新告警</span>
+              </div>
+              <div class="list">
+                <div class="list-item">
+                  <div>
+                    <h4>支付回调延迟</h4>
+                    <small>最近 10 分钟回调平均延迟 4.2 秒。</small>
+                  </div>
+                </div>
+                <div class="list-item">
+                  <div>
+                    <h4>香港节点高负载</h4>
+                    <small>CPU 峰值 86%，建议启动弹性扩容。</small>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-body">
+              <div class="card-header">
+                <div>
+                  <h4>运营摘要</h4>
+                  <p>基于当前数据生成的行动建议。</p>
+                </div>
+                <span class="tag">AI Insight</span>
+              </div>
+              <div class="notice">
+                <div>💡</div>
+                <div>试用用户转化率提升到 14.8%，建议继续对 3 日内活跃的新用户投放升级优惠券，并对流失预警用户发起召回。</div>
+              </div>
+            </div>
+          </article>
+          <article class="card" id="broadcast">
+            <div class="card-body">
+              <div class="card-header">
+                <div>
+                  <h4>快捷操作</h4>
+                  <p>后台常用高频入口。</p>
+                </div>
+                <span class="tag">Shortcut</span>
+              </div>
+              <div class="quick-actions">
+                <button class="btn btn-primary">发布公告</button>
+                <button class="btn btn-secondary">批量导入</button>
+                <button class="btn btn-secondary">发送邮件</button>
+                <button class="btn btn-secondary">生成报表</button>
+                <button class="btn btn-secondary">创建工单</button>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section-panel" id="users">
+        <div class="panel-grid secondary-grid">
+          <article class="card">
+            <div class="card-body">
+              <div class="card-header">
+                <div>
+                  <h3>用户列表</h3>
+                  <p>包含会员等级、最近登录、健康度与当前状态。</p>
+                </div>
+                <button class="btn btn-primary">导入用户</button>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>姓名</th>
+                      <th>会员等级</th>
+                      <th>最近登录</th>
+                      <th>健康度</th>
+                      <th>状态</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    <tr>
+                      <td><strong>Wang Lei</strong><small>wang.lei@example.com</small></td>
+                      <td>企业版</td>
+                      <td>2026-03-18 10:02</td>
+                      <td>92 / 100</td>
+                      <td><span class="badge success">正常</span></td>
+                    </tr>
+                    <tr>
+                      <td><strong>Liu Jia</strong><small>liu.jia@example.com</small></td>
+                      <td>专业版</td>
+                      <td>2026-03-18 08:17</td>
+                      <td>78 / 100</td>
+                      <td><span class="badge warning">待跟进</span></td>
+                    </tr>
+                    <tr>
+                      <td><strong>Zhao Xin</strong><small>zhao.xin@example.com</small></td>
+                      <td>试用版</td>
+                      <td>2026-03-17 21:44</td>
+                      <td>61 / 100</td>
+                      <td><span class="badge danger">流失预警</span></td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </article>
+
+          <article class="card" id="create-user">
+            <div class="card-body">
+              <div class="card-header">
+                <div>
+                  <h3>新建 / 编辑用户</h3>
+                  <p>支持快速录入基础信息、套餐与备注。</p>
+                </div>
+                <span class="tag">Form</span>
+              </div>
+              <form class="form-grid">
+                <div class="form-group">
+                  <label for="user-name">姓名</label>
+                  <input id="user-name" class="field" type="text" placeholder="请输入姓名">
+                </div>
+                <div class="form-group">
+                  <label for="user-email">邮箱</label>
+                  <input id="user-email" class="field" type="email" placeholder="请输入邮箱">
+                </div>
+                <div class="form-group">
+                  <label for="user-plan">套餐</label>
+                  <select id="user-plan" class="field">
+                    <option>试用版</option>
+                    <option selected>专业版</option>
+                    <option>企业版</option>
+                  </select>
+                </div>
+                <div class="form-group">
+                  <label for="user-status">状态</label>
+                  <select id="user-status" class="field">
+                    <option selected>正常</option>
+                    <option>待跟进</option>
+                    <option>禁用</option>
+                  </select>
+                </div>
+                <div class="form-group full">
+                  <label for="user-note">备注</label>
+                  <textarea id="user-note" class="field" placeholder="填写跟进记录、客户标签或风险说明"></textarea>
+                </div>
+                <div class="form-group full" style="display:flex; gap:12px; flex-wrap:wrap;">
+                  <button class="btn btn-primary" type="button">保存用户</button>
+                  <button class="btn btn-secondary" type="reset">重置</button>
+                </div>
+              </form>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section-panel" id="orders">
+        <div class="panel-grid split">
+          <article class="card">
+            <div class="card-body">
+              <div class="card-header">
+                <div>
+                  <h3>订单概览</h3>
+                  <p>汇总支付成功率、退款率与续费转化情况。</p>
+                </div>
+                <span class="tag">Sales</span>
+              </div>
+              <div class="list">
+                <div class="list-item"><div><h4>支付成功率</h4><small>近 30 天支付成功率稳步提升。</small></div><strong>97.2%</strong></div>
+                <div class="list-item"><div><h4>退款率</h4><small>同比下降 1.8%，客服解释成本降低。</small></div><strong>2.1%</strong></div>
+                <div class="list-item"><div><h4>自动续费转化</h4><small>企业客户自动续费占比更高。</small></div><strong>44.6%</strong></div>
+              </div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-body">
+              <div class="card-header">
+                <div>
+                  <h3>收款渠道</h3>
+                  <p>便于运营查看渠道贡献占比。</p>
+                </div>
+                <span class="tag">Finance</span>
+              </div>
+              <div class="legend">
+                <div class="legend-item"><div class="legend-left"><span class="dot" style="background:#38bdf8"></span><span>支付宝</span></div><strong>42%</strong></div>
+                <div class="legend-item"><div class="legend-left"><span class="dot" style="background:#22c55e"></span><span>微信支付</span></div><strong>31%</strong></div>
+                <div class="legend-item"><div class="legend-left"><span class="dot" style="background:#8b5cf6"></span><span>Stripe</span></div><strong>17%</strong></div>
+                <div class="legend-item"><div class="legend-left"><span class="dot" style="background:#f59e0b"></span><span>人工转账</span></div><strong>10%</strong></div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section-panel" id="content">
+        <div class="panel-grid split">
+          <article class="card">
+            <div class="card-body">
+              <div class="card-header">
+                <div>
+                  <h3>内容发布队列</h3>
+                  <p>适用于公告、帮助中心、博客或活动页审核。</p>
+                </div>
+                <button class="btn btn-primary">新建内容</button>
+              </div>
+              <div class="list">
+                <div class="list-item"><div><h4>3 月维护公告</h4><small>作者：运营团队 · 计划发布时间：2026-03-19</small></div><span class="badge warning">待审核</span></div>
+                <div class="list-item"><div><h4>企业版升级说明</h4><small>作者：产品团队 · 已校对，等待发布</small></div><span class="badge success">可发布</span></div>
+                <div class="list-item"><div><h4>新手帮助文档</h4><small>作者：客服团队 · 缺少截图资源</small></div><span class="badge danger">需补充</span></div>
+              </div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-body">
+              <div class="card-header">
+                <div>
+                  <h3>公告编辑器</h3>
+                  <p>示例配置区，可接 CMS 接口或富文本编辑器。</p>
+                </div>
+                <span class="tag">CMS</span>
+              </div>
+              <div class="form-grid">
+                <div class="form-group full">
+                  <label for="notice-title">标题</label>
+                  <input id="notice-title" class="field" type="text" value="系统维护通知">
+                </div>
+                <div class="form-group full">
+                  <label for="notice-content">内容</label>
+                  <textarea id="notice-content" class="field">尊敬的用户，平台将于周五凌晨 02:00 - 03:00 进行例行维护，期间部分服务可能出现短暂波动。</textarea>
+                </div>
+                <div class="form-group full" style="display:flex; gap:12px; flex-wrap:wrap;">
+                  <button class="btn btn-primary" type="button">保存草稿</button>
+                  <button class="btn btn-secondary" type="button">预览</button>
+                  <button class="btn btn-secondary" type="button">安排发布</button>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section-panel" id="tickets">
+        <div class="panel-grid split">
+          <article class="card">
+            <div class="card-body">
+              <div class="card-header">
+                <div>
+                  <h3>工单分布</h3>
+                  <p>按优先级查看当前工单量。</p>
+                </div>
+                <span class="tag">Support</span>
+              </div>
+              <div class="list">
+                <div class="list-item"><div><h4>P1 紧急故障</h4><small>影响支付、登录、核心连接服务。</small></div><strong>9</strong></div>
+                <div class="list-item"><div><h4>P2 功能异常</h4><small>影响部分用户体验，需要 4 小时内处理。</small></div><strong>14</strong></div>
+                <div class="list-item"><div><h4>P3 咨询建议</h4><small>咨询、文档反馈和需求建议。</small></div><strong>28</strong></div>
+              </div>
+            </div>
+          </article>
+          <article class="card">
+            <div class="card-body">
+              <div class="card-header">
+                <div>
+                  <h3>最近工单</h3>
+                  <p>展示客服 SLA 与处理状态。</p>
+                </div>
+                <span class="status warning">平均首响 6 分钟</span>
+              </div>
+              <div class="list">
+                <div class="list-item"><div><h4>#TK-1021 登录验证码失败</h4><small>提交人：zhou@example.com · 5 分钟前</small></div><span class="badge danger">处理中</span></div>
+                <div class="list-item"><div><h4>#TK-1016 企业版续费咨询</h4><small>提交人：sales@example.com · 21 分钟前</small></div><span class="badge success">已响应</span></div>
+                <div class="list-item"><div><h4>#TK-1009 节点延迟反馈</h4><small>提交人：user@example.com · 48 分钟前</small></div><span class="badge warning">待派发</span></div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section-panel" id="settings">
+        <div class="panel-grid split">
+          <article class="card">
+            <div class="card-body">
+              <div class="card-header">
+                <div>
+                  <h3>系统配置</h3>
+                  <p>常见后台开关、通知与安全项。</p>
+                </div>
+                <span class="tag">Config</span>
+              </div>
+              <div class="toggle-row">
+                <div class="toggle-item">
+                  <div>
+                    <h4>启用注册审核</h4>
+                    <small>开启后新用户需审核通过后才能使用核心功能。</small>
+                  </div>
+                  <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+                </div>
+                <div class="toggle-item">
+                  <div>
+                    <h4>异常登录提醒</h4>
+                    <small>发现异地或异常设备登录时自动发送邮件/短信提醒。</small>
+                  </div>
+                  <label class="switch"><input type="checkbox" checked><span class="slider"></span></label>
+                </div>
+                <div class="toggle-item">
+                  <div>
+                    <h4>维护模式</h4>
+                    <small>临时进入维护状态，前台显示统一维护公告。</small>
+                  </div>
+                  <label class="switch"><input type="checkbox"><span class="slider"></span></label>
+                </div>
+              </div>
+            </div>
+          </article>
+
+          <article class="card">
+            <div class="card-body">
+              <div class="card-header">
+                <div>
+                  <h3>通知与 API</h3>
+                  <p>可扩展为 Webhook、短信、邮件与第三方集成配置。</p>
+                </div>
+                <span class="tag">Integration</span>
+              </div>
+              <div class="form-grid">
+                <div class="form-group full">
+                  <label for="webhook">Webhook 地址</label>
+                  <input id="webhook" class="field" type="url" value="https://api.example.com/hooks/admin-events">
+                </div>
+                <div class="form-group">
+                  <label for="email">通知邮箱</label>
+                  <input id="email" class="field" type="email" value="ops@example.com">
+                </div>
+                <div class="form-group">
+                  <label for="channel">默认通道</label>
+                  <select id="channel" class="field">
+                    <option selected>邮件 + 站内信</option>
+                    <option>仅邮件</option>
+                    <option>仅站内信</option>
+                  </select>
+                </div>
+                <div class="form-group full" style="display:flex; gap:12px; flex-wrap:wrap;">
+                  <button class="btn btn-primary" type="button">保存设置</button>
+                  <button class="btn btn-secondary" type="button">测试回调</button>
+                </div>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const pageMeta = {
+      dashboard: {
+        title: '总览仪表盘',
+        desc: '查看核心经营指标、用户趋势、工单状态与运营建议，适合作为后台首页的主工作台。'
+      },
+      users: {
+        title: '用户管理',
+        desc: '集中处理用户档案、会员等级、状态跟踪与手动录入，适合作为 CRM / 用户后台的基础模块。'
+      },
+      orders: {
+        title: '订单与订阅',
+        desc: '查看订单表现、支付渠道和订阅续费数据，可继续接入真实财务接口。'
+      },
+      content: {
+        title: '内容运营',
+        desc: '管理公告、帮助文档和活动内容，支持审核与发布流程展示。'
+      },
+      tickets: {
+        title: '工单中心',
+        desc: '查看客服响应效率、工单优先级和最新处理状态。'
+      },
+      settings: {
+        title: '系统设置',
+        desc: '统一管理系统开关、通知策略与集成配置。'
+      }
+    };
+
+    const links = document.querySelectorAll('.nav-link[data-target]');
+    const panels = document.querySelectorAll('.section-panel');
+    const title = document.getElementById('page-title');
+    const desc = document.getElementById('page-desc');
+
+    links.forEach((link) => {
+      link.addEventListener('click', () => {
+        const target = link.dataset.target;
+        links.forEach((item) => item.classList.toggle('active', item === link));
+        panels.forEach((panel) => panel.classList.toggle('active', panel.id === target));
+        title.textContent = pageMeta[target].title;
+        desc.textContent = pageMeta[target].desc;
+      });
+    });
+  </script>
+</body>
+</html>
