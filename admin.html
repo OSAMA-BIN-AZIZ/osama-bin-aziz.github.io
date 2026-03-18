@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>V2free 管理后台</title>
+    <meta
+      name="description"
+      content="V2free 管理后台，支持仪表盘、用户管理、节点监控、工单处理、财务概览与系统设置。"
+    />
+    <link rel="stylesheet" href="assets/admin.css" />
+  </head>
+  <body>
+    <div class="admin-shell">
+      <aside class="sidebar">
+        <div class="brand-block">
+          <div class="brand-mark">V</div>
+          <div>
+            <p class="eyebrow">Control Center</p>
+            <h1>V2free Admin</h1>
+          </div>
+        </div>
+
+        <nav class="nav-list">
+          <button class="nav-item active" data-target="dashboard">总览仪表盘</button>
+          <button class="nav-item" data-target="users">用户管理</button>
+          <button class="nav-item" data-target="nodes">节点监控</button>
+          <button class="nav-item" data-target="finance">财务订单</button>
+          <button class="nav-item" data-target="tickets">客服工单</button>
+          <button class="nav-item" data-target="content">公告内容</button>
+          <button class="nav-item" data-target="settings">系统设置</button>
+        </nav>
+
+        <section class="sidebar-card">
+          <p class="eyebrow">今日重点</p>
+          <h2 id="sidebarAlertTitle">节点巡检待执行</h2>
+          <p id="sidebarAlertBody">东京 03 与新加坡 02 节点需要关注延迟波动。</p>
+          <button class="ghost-button" id="focusNodesButton">查看节点详情</button>
+        </section>
+      </aside>
+
+      <main class="main-panel">
+        <header class="topbar">
+          <div>
+            <p class="eyebrow">管理后台</p>
+            <h2>运营控制台</h2>
+          </div>
+          <div class="topbar-tools">
+            <label class="search-box">
+              <span>搜索</span>
+              <input id="globalSearch" type="search" placeholder="搜索用户、节点、工单关键字" />
+            </label>
+            <button class="primary-button" id="seedDemoButton">重置演示数据</button>
+          </div>
+        </header>
+
+        <section class="panel active" id="dashboard">
+          <div class="stats-grid">
+            <article class="stat-card">
+              <p>总用户数</p>
+              <h3 id="metricUsers">0</h3>
+              <span id="metricNewUsers">本周新增 0</span>
+            </article>
+            <article class="stat-card">
+              <p>活跃节点</p>
+              <h3 id="metricNodes">0</h3>
+              <span id="metricNodeStatus">0 个异常</span>
+            </article>
+            <article class="stat-card">
+              <p>本月营收</p>
+              <h3 id="metricRevenue">¥0</h3>
+              <span id="metricOrders">0 笔订单</span>
+            </article>
+            <article class="stat-card">
+              <p>待处理工单</p>
+              <h3 id="metricTickets">0</h3>
+              <span id="metricUrgent">0 个紧急</span>
+            </article>
+          </div>
+
+          <div class="content-grid">
+            <section class="card wide-card">
+              <div class="card-header">
+                <div>
+                  <p class="eyebrow">趋势</p>
+                  <h3>7 日注册与收入概览</h3>
+                </div>
+                <span class="badge">实时模拟</span>
+              </div>
+              <div id="chartBars" class="bar-chart"></div>
+            </section>
+
+            <section class="card">
+              <div class="card-header">
+                <div>
+                  <p class="eyebrow">系统健康度</p>
+                  <h3>巡检摘要</h3>
+                </div>
+              </div>
+              <ul id="healthList" class="status-list"></ul>
+            </section>
+
+            <section class="card wide-card">
+              <div class="card-header">
+                <div>
+                  <p class="eyebrow">最近活动</p>
+                  <h3>管理员操作日志</h3>
+                </div>
+              </div>
+              <div id="activityFeed" class="activity-feed"></div>
+            </section>
+          </div>
+        </section>
+
+        <section class="panel" id="users">
+          <div class="panel-split">
+            <section class="card">
+              <div class="card-header">
+                <div>
+                  <p class="eyebrow">新增账号</p>
+                  <h3>创建用户</h3>
+                </div>
+              </div>
+              <form id="userForm" class="stack-form">
+                <label>
+                  邮箱
+                  <input type="email" name="email" placeholder="user@example.com" required />
+                </label>
+                <label>
+                  套餐
+                  <select name="plan">
+                    <option value="Free">Free</option>
+                    <option value="Basic">Basic</option>
+                    <option value="Pro">Pro</option>
+                    <option value="Enterprise">Enterprise</option>
+                  </select>
+                </label>
+                <label>
+                  状态
+                  <select name="status">
+                    <option value="正常">正常</option>
+                    <option value="待验证">待验证</option>
+                    <option value="已暂停">已暂停</option>
+                  </select>
+                </label>
+                <button class="primary-button" type="submit">添加用户</button>
+              </form>
+            </section>
+
+            <section class="card grow-card">
+              <div class="card-header">
+                <div>
+                  <p class="eyebrow">用户数据</p>
+                  <h3>账户列表</h3>
+                </div>
+                <span class="hint">支持全局搜索联动过滤</span>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>邮箱</th>
+                      <th>套餐</th>
+                      <th>状态</th>
+                      <th>流量使用</th>
+                      <th>注册时间</th>
+                    </tr>
+                  </thead>
+                  <tbody id="usersTable"></tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="panel" id="nodes">
+          <div class="panel-split">
+            <section class="card grow-card">
+              <div class="card-header">
+                <div>
+                  <p class="eyebrow">节点池</p>
+                  <h3>线路与负载监控</h3>
+                </div>
+              </div>
+              <div id="nodesGrid" class="node-grid"></div>
+            </section>
+            <section class="card">
+              <div class="card-header">
+                <div>
+                  <p class="eyebrow">操作</p>
+                  <h3>节点维护面板</h3>
+                </div>
+              </div>
+              <form id="nodeForm" class="stack-form">
+                <label>
+                  节点名称
+                  <input type="text" name="name" placeholder="例如：香港 05" required />
+                </label>
+                <label>
+                  地区
+                  <input type="text" name="region" placeholder="Hong Kong" required />
+                </label>
+                <label>
+                  状态
+                  <select name="status">
+                    <option value="在线">在线</option>
+                    <option value="维护中">维护中</option>
+                    <option value="异常">异常</option>
+                  </select>
+                </label>
+                <button class="primary-button" type="submit">添加节点</button>
+              </form>
+            </section>
+          </div>
+        </section>
+
+        <section class="panel" id="finance">
+          <div class="content-grid finance-grid">
+            <section class="card">
+              <div class="card-header">
+                <div>
+                  <p class="eyebrow">收款概况</p>
+                  <h3>套餐收入分布</h3>
+                </div>
+              </div>
+              <div id="planRevenueList" class="status-list revenue-list"></div>
+            </section>
+            <section class="card wide-card">
+              <div class="card-header">
+                <div>
+                  <p class="eyebrow">订单</p>
+                  <h3>最近支付记录</h3>
+                </div>
+              </div>
+              <div class="table-wrap">
+                <table>
+                  <thead>
+                    <tr>
+                      <th>订单号</th>
+                      <th>用户</th>
+                      <th>套餐</th>
+                      <th>金额</th>
+                      <th>支付状态</th>
+                      <th>时间</th>
+                    </tr>
+                  </thead>
+                  <tbody id="ordersTable"></tbody>
+                </table>
+              </div>
+            </section>
+          </div>
+        </section>
+
+        <section class="panel" id="tickets">
+          <div class="panel-split">
+            <section class="card grow-card">
+              <div class="card-header">
+                <div>
+                  <p class="eyebrow">服务台</p>
+                  <h3>工单队列</h3>
+                </div>
+              </div>
+              <div id="ticketList" class="ticket-list"></div>
+            </section>
+            <section class="card">
+              <div class="card-header">
+                <div>
+                  <p class="eyebrow">快速回复</p>
+                  <h3>更新工单状态</h3>
+                </div>
+              </div>
+              <form id="ticketForm" class="stack-form">
+                <label>
+                  工单 ID
+                  <input type="text" name="id" placeholder="例如：TK-1004" required />
+                </label>
+                <label>
+                  新状态
+                  <select name="status">
+                    <option value="待处理">待处理</option>
+                    <option value="处理中">处理中</option>
+                    <option value="已解决">已解决</option>
+                    <option value="升级">升级</option>
+                  </select>
+                </label>
+                <label>
+                  回复摘要
+                  <textarea name="reply" rows="4" placeholder="填写给用户的处理说明"></textarea>
+                </label>
+                <button class="primary-button" type="submit">提交处理</button>
+              </form>
+            </section>
+          </div>
+        </section>
+
+        <section class="panel" id="content">
+          <div class="panel-split">
+            <section class="card">
+              <div class="card-header">
+                <div>
+                  <p class="eyebrow">运营公告</p>
+                  <h3>发布新通知</h3>
+                </div>
+              </div>
+              <form id="announcementForm" class="stack-form">
+                <label>
+                  标题
+                  <input type="text" name="title" placeholder="例如：周末维护通知" required />
+                </label>
+                <label>
+                  分类
+                  <select name="tag">
+                    <option value="系统">系统</option>
+                    <option value="活动">活动</option>
+                    <option value="风控">风控</option>
+                  </select>
+                </label>
+                <label>
+                  内容
+                  <textarea name="content" rows="5" placeholder="请输入公告内容" required></textarea>
+                </label>
+                <button class="primary-button" type="submit">发布公告</button>
+              </form>
+            </section>
+            <section class="card grow-card">
+              <div class="card-header">
+                <div>
+                  <p class="eyebrow">公告记录</p>
+                  <h3>已发布内容</h3>
+                </div>
+              </div>
+              <div id="announcementList" class="announcement-list"></div>
+            </section>
+          </div>
+        </section>
+
+        <section class="panel" id="settings">
+          <div class="panel-split">
+            <section class="card grow-card">
+              <div class="card-header">
+                <div>
+                  <p class="eyebrow">站点配置</p>
+                  <h3>基础参数</h3>
+                </div>
+              </div>
+              <form id="settingsForm" class="settings-grid">
+                <label>
+                  站点名称
+                  <input type="text" name="siteName" />
+                </label>
+                <label>
+                  默认币种
+                  <input type="text" name="currency" />
+                </label>
+                <label>
+                  新用户初始流量
+                  <input type="text" name="defaultQuota" />
+                </label>
+                <label>
+                  工单 SLA
+                  <input type="text" name="sla" />
+                </label>
+                <label class="full-width">
+                  注册页公告
+                  <textarea name="welcomeMessage" rows="4"></textarea>
+                </label>
+                <div class="settings-switches full-width">
+                  <label class="switch-row">
+                    <span>开启新用户注册</span>
+                    <input type="checkbox" name="registrationOpen" />
+                  </label>
+                  <label class="switch-row">
+                    <span>启用邮件通知</span>
+                    <input type="checkbox" name="emailNotice" />
+                  </label>
+                  <label class="switch-row">
+                    <span>异常节点自动摘除</span>
+                    <input type="checkbox" name="autoDrain" />
+                  </label>
+                </div>
+                <button class="primary-button full-width" type="submit">保存系统设置</button>
+              </form>
+            </section>
+            <section class="card">
+              <div class="card-header">
+                <div>
+                  <p class="eyebrow">当前状态</p>
+                  <h3>配置摘要</h3>
+                </div>
+              </div>
+              <div id="settingsSummary" class="status-list"></div>
+            </section>
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <div id="toast" class="toast" aria-live="polite"></div>
+
+    <script src="assets/admin.js"></script>
+  </body>
+</html>
