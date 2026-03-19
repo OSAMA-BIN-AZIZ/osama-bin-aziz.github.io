@@ -5,7 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy import func, select, text
 from sqlalchemy.orm import Session
 
-from .config import get_settings
+from .config import ConfigError, get_settings
 from .database import Base, SessionLocal, engine, get_db
 from .models import AuditLog, Plan, Subscription, SubscriptionStatus, User, UserRole
 from .schemas import (
@@ -38,29 +38,48 @@ app.add_middleware(
 )
 
 
+def _seed_default_plans(db: Session) -> bool:
+    if db.scalar(select(Plan.id).limit(1)):
+        return False
+
+    db.add_all(
+        [
+            Plan(code="starter", name="Starter", description="个人轻量套餐", price_monthly=6.9, traffic_gb=120, device_limit=3),
+            Plan(code="pro", name="Pro", description="家庭/多设备套餐", price_monthly=12.9, traffic_gb=500, device_limit=8),
+            Plan(code="ultra", name="Ultra", description="企业订阅与专属线路", price_monthly=29.9, traffic_gb=2048, device_limit=20),
+        ]
+    )
+    return True
+
+
+def _seed_bootstrap_admin(db: Session) -> bool:
+    has_admin = db.scalar(select(User.id).where(User.email == settings.admin_email))
+    if has_admin:
+        return False
+    if not settings.bootstrap_admin_password:
+        raise ConfigError(
+            "BOOTSTRAP_ADMIN_PASSWORD must be set before the first startup so a new deployment does not ship with a shared admin password"
+        )
+
+    password_hash, password_salt = hash_password(settings.bootstrap_admin_password)
+    db.add(
+        User(
+            email=settings.admin_email,
+            password_hash=password_hash,
+            password_salt=password_salt,
+            role=UserRole.admin,
+        )
+    )
+    return True
+
+
 @app.on_event("startup")
 def startup() -> None:
     Base.metadata.create_all(bind=engine)
     with SessionLocal() as db:
-        has_admin = db.scalar(select(User).where(User.email == settings.admin_email))
-        if not has_admin:
-            password_hash, password_salt = hash_password("ChangeMeNow!123456")
-            db.add(
-                User(
-                    email=settings.admin_email,
-                    password_hash=password_hash,
-                    password_salt=password_salt,
-                    role=UserRole.admin,
-                )
-            )
-            if not db.scalar(select(Plan).limit(1)):
-                db.add_all(
-                    [
-                        Plan(code="starter", name="Starter", description="个人轻量套餐", price_monthly=6.9, traffic_gb=120, device_limit=3),
-                        Plan(code="pro", name="Pro", description="家庭/多设备套餐", price_monthly=12.9, traffic_gb=500, device_limit=8),
-                        Plan(code="ultra", name="Ultra", description="企业订阅与专属线路", price_monthly=29.9, traffic_gb=2048, device_limit=20),
-                    ]
-                )
+        created_admin = _seed_bootstrap_admin(db)
+        seeded_plans = _seed_default_plans(db)
+        if created_admin or seeded_plans:
             db.commit()
 
 

@@ -2,6 +2,7 @@ import os
 import sys
 import types
 import unittest
+from pathlib import Path
 
 os.environ.setdefault("APP_SECRET_KEY", "a" * 32)
 os.environ.setdefault("SUBSCRIPTION_SIGNING_KEY", "b" * 32)
@@ -22,7 +23,7 @@ fake_fastapi.status = types.SimpleNamespace(HTTP_401_UNAUTHORIZED=401)
 sys.modules.setdefault("fastapi", fake_fastapi)
 
 from backend import security
-from backend.config import get_settings
+from backend.config import ConfigError, get_settings
 
 
 class SecurityTests(unittest.TestCase):
@@ -41,6 +42,26 @@ class SecurityTests(unittest.TestCase):
     def test_database_ssl_is_enforced(self) -> None:
         settings = get_settings()
         self.assertIn("sslmode=require", settings.database_url)
+
+
+    def test_bootstrap_password_placeholder_is_rejected(self) -> None:
+        original = os.environ.get("BOOTSTRAP_ADMIN_PASSWORD")
+        try:
+            os.environ["BOOTSTRAP_ADMIN_PASSWORD"] = "ChangeMeNow!123456"
+            get_settings.cache_clear()
+            with self.assertRaises(ConfigError):
+                get_settings()
+        finally:
+            if original is None:
+                os.environ.pop("BOOTSTRAP_ADMIN_PASSWORD", None)
+            else:
+                os.environ["BOOTSTRAP_ADMIN_PASSWORD"] = original
+            get_settings.cache_clear()
+
+    def test_subscription_model_allows_multiple_rows_per_user_version(self) -> None:
+        models_source = Path("backend/models.py").read_text(encoding="utf-8")
+        self.assertNotIn("uq_subscription_token_version_per_user", models_source)
+        self.assertNotIn('UniqueConstraint("token_version", "user_id"', models_source)
 
 
 if __name__ == "__main__":

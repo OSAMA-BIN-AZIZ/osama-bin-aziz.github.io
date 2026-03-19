@@ -51,6 +51,7 @@ cp .env.example .env
 - `APP_SECRET_KEY`：接口访问令牌签名密钥。
 - `SUBSCRIPTION_SIGNING_KEY`：订阅链接签名密钥，必须与主密钥分离。
 - `ADMIN_EMAIL`：首次启动时自动创建管理员账号。
+- `BOOTSTRAP_ADMIN_PASSWORD`：首次启动创建管理员时使用的唯一初始密码，必须由部署环境单独注入。
 
 ### 3. 运行服务
 
@@ -61,12 +62,12 @@ uvicorn backend.main:app --host 0.0.0.0 --port 8000
 
 ### 4. 初始化数据库
 
-应用首次启动会自动建表，并创建默认管理员账号：
+应用首次启动会自动建表，并在提供 `BOOTSTRAP_ADMIN_PASSWORD` 时创建管理员账号：
 
 - 账号：`ADMIN_EMAIL`
-- 初始密码：`ChangeMeNow!123456`
+- 初始密码：`BOOTSTRAP_ADMIN_PASSWORD`
 
-> 首次登录后请立刻修改为高强度密码，并建议通过运维系统注入环境变量，而不是把密钥提交到仓库。
+> `BOOTSTRAP_ADMIN_PASSWORD` 必须是部署专属强密码，不能复用文档中的占位值。首次登录后请尽快轮换，并通过运维系统或密钥管理服务注入，而不是把真实密码提交到仓库。
 
 ## 推荐部署拓扑
 

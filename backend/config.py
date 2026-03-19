@@ -20,6 +20,7 @@ class Settings:
     read_database_url: str | None
     cors_origins: tuple[str, ...]
     admin_email: str
+    bootstrap_admin_password: str | None
     access_token_ttl_minutes: int
     subscription_token_ttl_minutes: int
     db_pool_size: int
@@ -43,6 +44,18 @@ def _get_required(name: str) -> str:
 def _normalize_origins(raw: str) -> tuple[str, ...]:
     origins = [item.strip() for item in raw.split(",") if item.strip()]
     return tuple(origins or ["http://localhost:8000"])
+
+
+
+def _get_bootstrap_admin_password() -> str | None:
+    value = os.getenv("BOOTSTRAP_ADMIN_PASSWORD", "").strip()
+    if not value:
+        return None
+    if value == "ChangeMeNow!123456":
+        raise ConfigError("BOOTSTRAP_ADMIN_PASSWORD must be deployment-specific and cannot use the documented placeholder")
+    if len(value) < 16:
+        raise ConfigError("BOOTSTRAP_ADMIN_PASSWORD must be at least 16 characters")
+    return value
 
 
 
@@ -74,6 +87,7 @@ def get_settings() -> Settings:
         read_database_url=os.getenv("READ_DATABASE_URL", "").strip() or None,
         cors_origins=_normalize_origins(os.getenv("CORS_ORIGINS", "http://localhost:8000")),
         admin_email=_get_required("ADMIN_EMAIL"),
+        bootstrap_admin_password=_get_bootstrap_admin_password(),
         access_token_ttl_minutes=int(os.getenv("ACCESS_TOKEN_TTL_MINUTES", "30")),
         subscription_token_ttl_minutes=int(os.getenv("SUBSCRIPTION_TOKEN_TTL_MINUTES", "10")),
         db_pool_size=int(os.getenv("DB_POOL_SIZE", "5")),
