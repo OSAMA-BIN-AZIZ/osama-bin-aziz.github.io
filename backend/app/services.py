@@ -1,3 +1,5 @@
+from datetime import date
+
 from sqlalchemy import func
 from sqlalchemy.orm import Session
 
@@ -61,15 +63,23 @@ def serialize_secure_content(record: SecureContent) -> dict:
     }
 
 
-def user_has_paid_access(user: User) -> bool:
+def subscription_is_current(subscription: Subscription, today: date | None = None) -> bool:
+    effective_today = today or date.today()
     active_statuses = {SubscriptionStatus.ACTIVE, SubscriptionStatus.TRIAL}
+    return (
+        subscription.status in active_statuses
+        and subscription.start_date <= effective_today <= subscription.end_date
+    )
+
+
+def user_has_paid_access(user: User, today: date | None = None) -> bool:
     for subscription in user.subscriptions:
-        if subscription.status in active_statuses and subscription.plan.includes_premium_content:
+        if subscription_is_current(subscription, today=today) and subscription.plan.includes_premium_content:
             return True
     return False
 
 
-def can_read_content(user: User | None, content: SecureContent) -> bool:
+def can_read_content(user: User | None, content: SecureContent, today: date | None = None) -> bool:
     if content.visibility == ContentVisibility.PUBLIC:
         return True
     if not user:
@@ -77,8 +87,8 @@ def can_read_content(user: User | None, content: SecureContent) -> bool:
     if user.role == UserRole.ADMIN:
         return True
     if content.visibility == ContentVisibility.SUBSCRIBER:
-        return any(subscription.status in {SubscriptionStatus.ACTIVE, SubscriptionStatus.TRIAL} for subscription in user.subscriptions)
-    return user_has_paid_access(user)
+        return any(subscription_is_current(subscription, today=today) for subscription in user.subscriptions)
+    return user_has_paid_access(user, today=today)
 
 
 def get_dashboard_metrics(db: Session) -> dict[str, int]:

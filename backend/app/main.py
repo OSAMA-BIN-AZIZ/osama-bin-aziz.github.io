@@ -55,6 +55,32 @@ app.add_middleware(
 )
 
 
+def get_current_user_optional(
+    authorization: str | None = Header(default=None),
+    db: Session = Depends(get_db),
+) -> User | None:
+    if not authorization:
+        return None
+    scheme, _, token = authorization.partition(' ')
+    if scheme.lower() != 'bearer' or not token:
+        return None
+    try:
+        payload = jwt.decode(token, settings.jwt_secret_key, algorithms=['HS256'])
+    except JWTError:
+        return None
+    if payload.get('type') != 'access':
+        return None
+    subject = payload.get('sub')
+    if not subject:
+        return None
+    return (
+        db.query(User)
+        .options(joinedload(User.subscriptions).joinedload(Subscription.plan))
+        .filter(User.email == subject, User.is_active.is_(True))
+        .first()
+    )
+
+
 @app.get('/health', response_model=HealthResponse, tags=['system'])
 def healthcheck() -> HealthResponse:
     return HealthResponse(status='ok', app=settings.app_name, environment=settings.app_env)
@@ -181,29 +207,3 @@ def security_notes(_: User = Depends(require_admin)) -> dict[str, list[str] | st
             'Keep premium content encrypted at rest and never expose raw database credentials to the frontend.',
         ],
     }
-
-
-def get_current_user_optional(
-    authorization: str | None = Header(default=None),
-    db: Session = Depends(get_db),
-) -> User | None:
-    if not authorization:
-        return None
-    scheme, _, token = authorization.partition(' ')
-    if scheme.lower() != 'bearer' or not token:
-        return None
-    try:
-        payload = jwt.decode(token, settings.jwt_secret_key, algorithms=['HS256'])
-    except JWTError:
-        return None
-    if payload.get('type') != 'access':
-        return None
-    subject = payload.get('sub')
-    if not subject:
-        return None
-    return (
-        db.query(User)
-        .options(joinedload(User.subscriptions).joinedload(Subscription.plan))
-        .filter(User.email == subject, User.is_active.is_(True))
-        .first()
-    )
