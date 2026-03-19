@@ -22,3 +22,5 @@ uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload
 ```
 
 详细部署与安全建议请查看：`backend/README.md`。
+
+另外，针对最近修复的后端安全/可用性漏洞，已经在 `backend/README.md` 中新增“已修复漏洞说明”章节，方便直接查看漏洞成因、影响范围、修复方式与复现/排查要点。
