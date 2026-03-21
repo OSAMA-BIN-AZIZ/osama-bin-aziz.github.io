@@ -25,7 +25,7 @@ python -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
 cp .env.example .env
-uvicorn app.main:app --reload
+uvicorn app.main:app --reload --env-file .env
 ```
 
 ## 需要设置的关键环境变量
